@@ -7,7 +7,7 @@ import {useRouter, useSearchParams} from "next/navigation";
 import {cn} from "@/lib/utils";
 
 interface CategoriesProps {
-    data: [Category]
+    data: Category[]
 }
 
 export const Categories = ({data}: CategoriesProps) => {

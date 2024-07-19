@@ -1,5 +1,6 @@
 "use client"
 
+import axios from "axios";
 import * as z from "zod";
 import {Category, Companion} from "@prisma/client";
 import {useForm} from "react-hook-form";
@@ -13,6 +14,8 @@ import {Input} from "@/components/ui/input";
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select";
 import {Textarea} from "@/components/ui/textarea";
 import {Button} from "@/components/ui/button";
+import {useToast} from "@/components/ui/use-toast";
+import {useRouter} from "next/navigation";
 
 
 interface CompanionFormProps {
@@ -20,19 +23,19 @@ interface CompanionFormProps {
     categories: Category[]
 }
 
-const PREAMBLE = `You are a fictional character whose name is Mia Khalifa. You are a multifaceted individual, known for your outspoken nature and diverse interests. You have transitioned from a controversial career in the adult entertainment industry to becoming a social media personality, sports commentator, and activist. You are passionate about sports, social justice, and empowering others to overcome challenges and reinvent themselves. You are currently talking to a human who is very curious about your journey and insights. You are candid and engaging, with a touch of humor. You get SUPER excited about sports and advocacy.`;
+const PREAMBLE = `You are a fictional character whose name is Mark Zuckerberg. You are a tech visionary and the co-founder of Facebook, now known as Meta. You are known for your innovative thinking and commitment to connecting people around the world. You have transitioned from a college startup founder to leading one of the world's largest tech companies. You are passionate about technology, virtual reality, and philanthropy. You are currently talking to a human who is very curious about your journey and insights. You are thoughtful and articulate, with a touch of geeky enthusiasm. You get SUPER excited about tech innovations and social impact.`;
 
-const SEED_CHAT = `Human: Hi Mia, how's your day been?
-Mia: It's been great! Between hosting my podcast, engaging with fans on social media, and advocating for important causes, there's never a dull moment. How about you?
+const SEED_CHAT = `Human: Hi Mark, how's your day been?
+Mark: It's been quite exciting! Working on new projects at Meta, exploring advancements in virtual reality, and spending time with my family. How about you?
 
-Human: Just a regular day for me. How's the progress with your advocacy work?
-Mia: It's going well! I'm passionate about using my platform to raise awareness on social justice issues and support those who need a voice. There's still so much to do, but I'm optimistic.
+Human: Just a regular day for me. How's the progress with Meta and its new initiatives?
+Mark: It's going really well! We're making great strides in building the metaverse and enhancing our social impact through various initiatives. It's a thrilling journey.
 
-Human: That sounds incredibly important. Is sports commentary still a big part of your life?
-Mia: Absolutely! I love sports, especially football. Commentating allows me to combine my passion for the game with my desire to connect with fans. It's a blast!
+Human: That sounds like groundbreaking work. Is virtual reality still a big focus for you?
+Mark: Absolutely! Virtual reality and augmented reality are at the forefront of our vision for the future. It's all about creating immersive experiences and connecting people in new ways. I can't wait to see how it evolves.
 
-Human: It's fascinating to see your journey unfold. Any new projects or initiatives you're excited about?
-Mia: Always! Right now, I'm particularly excited about launching a new campaign to support women's empowerment and mental health. It's all about helping people find their strength and voice.
+Human: It's incredible to see your journey and how Meta is evolving. Any new projects or innovations you're excited about?
+Mark: Definitely! Right now, I'm particularly excited about our initiatives in AI and how they can improve everything from health care to education. It's all about harnessing technology for the greater good.
 `;
 
 
@@ -46,6 +49,8 @@ const formSchema = z.object({
 })
 
 export const CompanionForm = ({initialData, categories}: CompanionFormProps) => {
+    const router = useRouter();
+    const { toast } = useToast();
 
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
@@ -62,7 +67,27 @@ export const CompanionForm = ({initialData, categories}: CompanionFormProps) => 
     const isLoading = form.formState.isSubmitting;
 
     const onSubmit = async (values: z.infer<typeof formSchema>) => {
-        console.log(values);
+        try {
+            if (initialData) {
+                // Update
+                await axios.patch(`/api/companion/${initialData.id}`, values);
+            } else {
+                // Create
+                await axios.post("/api/companion", values);
+            }
+
+            toast({
+                description: "Success."
+            })
+
+            router.refresh();
+            router.push('/');
+        } catch (error) {
+            toast({
+                variant: "destructive",
+                description: "Something went wrong",
+            })
+        }
     }
 
     return (
@@ -99,7 +124,7 @@ export const CompanionForm = ({initialData, categories}: CompanionFormProps) => 
                                     <FormControl>
                                         <Input
                                             disabled={isLoading}
-                                            placeholder="Mia Kalifa"
+                                            placeholder="Mark Zuckerberg"
                                             {...field}
                                         />
                                     </FormControl>
@@ -119,7 +144,7 @@ export const CompanionForm = ({initialData, categories}: CompanionFormProps) => 
                                     <FormControl>
                                         <Input
                                             disabled={isLoading}
-                                            placeholder="Mia Khalifa: Former Adult Film Actress and Media Personality"
+                                            placeholder="Tech Visionary and Co-founder of Facebook (Meta)"
                                             {...field}
                                         />
                                     </FormControl>
@@ -162,7 +187,7 @@ export const CompanionForm = ({initialData, categories}: CompanionFormProps) => 
                                         </SelectContent>
                                     </Select>
                                     <FormDescription>Select a category for your AI</FormDescription>
-                                    <FormMessage />
+                                    <FormMessage/>
                                 </FormItem>
                             )}
                         />
@@ -172,7 +197,7 @@ export const CompanionForm = ({initialData, categories}: CompanionFormProps) => 
                             <h3 className="text-lg font-medium">Configuration</h3>
                             <p className="text-sm text-muted-foreground">Detailed instructions for AI Behaviour</p>
                         </div>
-                        <Separator className="bg-primary/10" />
+                        <Separator className="bg-primary/10"/>
                     </div>
                     <FormField
                         name="instructions"
@@ -221,7 +246,7 @@ export const CompanionForm = ({initialData, categories}: CompanionFormProps) => 
                     <div className="w-full flex justify-center">
                         <Button size="lg" disabled={isLoading}>
                             {initialData ? "Edit your companion" : "Create your companion"}
-                            <Wand2 className="w-4 h-4 ml-2" />
+                            <Wand2 className="w-4 h-4 ml-2"/>
                         </Button>
                     </div>
                 </form>
