@@ -30,12 +30,13 @@ export const ChatClient = ({companion}: ChatClientProps) => {
                 role: "system",
                 content: completion
             };
-
             setMessages((currentMessages) => [...currentMessages, systemMessage]);
             setInput("");
-
             router.refresh();
         },
+        onError(error) {
+            console.error("Error in completion", error);
+        }
     });
 
     const onSubmit = (e: FormEvent<HTMLFormElement>) => {
